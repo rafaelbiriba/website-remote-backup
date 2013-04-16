@@ -1,0 +1,18 @@
+connection:
+  host: meusite.com
+  ssh_user: usuario
+  ssh_password: senha #Deixar em braco se for usar chaves ssh
+  ssh_port: 22
+database:
+  enable_database_backup: true #Liga o backup do mysql
+  ### Se tiver com o backup do mysql ligado, configurar as opções abaixo:
+  database_name: nome_do_banco
+website:
+  enable_website_backup: true #Liga o backup da pasta do site
+  ### Se tiver com o backup do site ligado, configurar as opções abaixo:
+  site_path: /home/exemplo/public_html
+  ignore_folders: ["tmp", "cache"] #Pastas a serem ignoradas pelo backup que ficam dentro do site_path
+  ignore_files: ["config/senhas.php"] #Arquivos especificos para serem ignorados pelo backup
+configuration:
+  local_backup_folder: /home/exemplo/backups #Pasta local para salvar os backups
+      
