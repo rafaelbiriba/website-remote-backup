@@ -6,6 +6,7 @@ connection:
 database:
   enable_database_backup: true #Liga o backup do mysql
   ### Se tiver com o backup do mysql ligado, configurar as opções abaixo:
+  host: meubanco.com
   database_name: nome_do_banco
 website:
   enable_website_backup: true #Liga o backup da pasta do site
