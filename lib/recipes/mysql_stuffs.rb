@@ -6,28 +6,34 @@ namespace :mysql do
     server_name = capture("echo $CAPISTRANO:HOST$").strip
     stop_spinner
     puts "OK".green
-    servers = Server.select{ |s| s.database.host == server_name && s.database.enable_database_backup == true}
-    mysqlpassfile = ""
+    servers = Server.select{ |s| s.database.host == server_name }
+    mysqlpassfile_content = ""
     puts "Preparando para criar o arquivo de senhas do mysql no host #{server_name.yellow}..."
-    servers.each do |server|
+    databases = []
+    servers.each_with_index do |server, i|
+      databases << server.database.database_name
       puts "Informações do database #{server.database.database_name.yellow}"
       db_user = Capistrano::CLI.ui.ask("Usuário do mysql: ")
       db_password = Capistrano::CLI.password_prompt("Senha do mysql: ")
-      mysqlpassfile << "[mysqldump]\\nuser=#{db_user}\\npassword=#{db_password}\\n\\n[client]\\nuser=#{db_user}\\npassword=#{db_password}\\n\\n"
+      mysqlpassfile_content << "[mysqldump#{i}]\\nuser=#{db_user}\\npassword=#{db_password}\\n\\n[client#{i}]\\nuser=#{db_user}\\npassword=#{db_password}\\n\\n"
     end
-    print "Salvando arquivo no server: "
+    print "Salvando arquivo de configuração no server: "
     start_spinner
-    run("cd ~/ && echo -e \"#{mysqlpassfile}\" > .my.cnf && chmod 600 .my.cnf")
+    run("cd ~/ && echo -e \"#{mysqlpassfile_content}\" > .my.cnf && chmod 600 .my.cnf")
     stop_spinner
     puts "OK".green
+    set :databases, databases
   end
   
   task :check do
-    print "Testando comunicação com o mysql: "
-    start_spinner
-    databases = capture("mysqlshow")
-    stop_spinner
-    puts "OK".green
+    databases.each_with_index do |db, i|
+      print "Testando comunicação com o banco #{db.yellow}: "
+      start_spinner
+      database = capture("mysqlshow --defaults-group-suffix=#{i}")
+      stop_spinner
+      raise Capistrano::Error if database.index(db).nil?
+      puts "OK".green
+    end
   end
 end
 
