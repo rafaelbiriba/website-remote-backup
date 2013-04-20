@@ -4,7 +4,6 @@ connection:
   ssh_password: senha #Deixar em braco se for usar chaves ssh
   ssh_port: 22
 database: #Não colocar essa chave se não houver backup de banco
-  host: meubanco.com
   database_name: nome_do_banco
 website: #Não colocar essa chave se não houver backup de codigo
   site_path: /home/exemplo/public_html
