@@ -7,6 +7,9 @@ GEM
       net-sftp (>= 2.0.0)
       net-ssh (>= 2.0.14)
       net-ssh-gateway (>= 1.1.0)
+    capistrano-transfer_progress (0.0.1)
+      capistrano (~> 2.0)
+      progressbar
     colored (1.2)
     columnize (0.3.6)
     debugger (1.5.0)
@@ -23,11 +26,13 @@ GEM
     net-ssh (2.6.6)
     net-ssh-gateway (1.2.0)
       net-ssh (>= 2.6.5)
+    progressbar (0.20.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   capistrano
+  capistrano-transfer_progress
   colored
   debugger
