@@ -7,8 +7,7 @@ database: #Não colocar essa chave se não houver backup de banco
   database_name: nome_do_banco
 website: #Não colocar essa chave se não houver backup de codigo
   site_path: /home/exemplo/public_html
-  ignore_folders: ["tmp", "cache"] #Pastas a serem ignoradas pelo backup que ficam dentro do site_path
-  ignore_files: ["config/senhas.php"] #Arquivos especificos para serem ignorados pelo backup
+  ignore: ["tmp", "cache", "config/senhas.php"] #Arquivos e Pastas a serem ignoradas pelo backup que ficam dentro do site_path
 configuration:
   local_backup_folder: /home/exemplo/backups #Pasta local para salvar os backups
       

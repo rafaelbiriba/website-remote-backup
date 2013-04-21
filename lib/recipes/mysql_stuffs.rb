@@ -1,6 +1,3 @@
-require 'digest/md5'
-require 'fileutils'
-
 desc "Create mysqldump password file in server"
 namespace :mysql do
   task :prepare, :roles => [:db] do
@@ -28,6 +25,7 @@ namespace :mysql do
   end
   
   task :check, :roles => [:db] do
+    debugger
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
@@ -96,6 +94,7 @@ namespace :mysql do
         print "Finalizando o download do banco #{db_name.yellow}: "
         start_spinner
         `cd #{db_path} && gzip -df "mysql-dump-#{db_name}-#{get_backup_date}.gz"`
+        `cd #{db_path} && mv "mysql-dump-#{db_name}-#{get_backup_date}" "mysql-dump-#{db_name}"`
         `cd #{db_path} && git add . && git commit -am 'Backup de banco - Data: #{get_backup_date}'`
         stop_spinner
         puts "OK".green
@@ -130,8 +129,4 @@ after "mysql:prepare", "mysql:check"
 
 def local_backup_path(server, db_name)
   "#{server.configuration.local_backup_folder}/#{server.connection.host}/databases/#{db_name}"
-end
-
-def get_backup_date
-  @backup_date ||= Time.now.strftime("%d/%m/%Y-%H_%M")
 end
