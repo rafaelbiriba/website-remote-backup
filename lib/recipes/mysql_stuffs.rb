@@ -1,4 +1,3 @@
-desc "Create mysqldump password file in server"
 namespace :mysql do
   task :prepare, :roles => [:db] do
     
@@ -25,7 +24,6 @@ namespace :mysql do
   end
   
   task :check, :roles => [:db] do
-    debugger
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
@@ -62,7 +60,7 @@ namespace :mysql do
         db_name = server.database.database_name
         print "Preparando para fazer o download do backup do banco #{db_name.yellow}: "
         start_spinner
-        db_path = local_backup_path(server, db_name)
+        db_path = local_db_backup_path(server, db_name)
         FileUtils.mkdir_p(db_path)
         `cd #{db_path} && if ! [ -d .git ]; then git init; fi;`
         stop_spinner
@@ -77,10 +75,9 @@ namespace :mysql do
       servers.each do |server|
         db_name = server.database.database_name
         code = Digest::MD5.hexdigest db_name
-        @bar = ProgressBar.new(db_name, 1)
         puts "Baixando backup do banco #{db_name.yellow}:"
         file = "mysql-dump-#{db_name}-#{get_backup_date}.gz"
-        download("#{file}", "#{local_backup_path(server, db_name)}/#{file}", :via => :scp, :hosts => s)
+        download("#{file}", "#{local_db_backup_path(server, db_name)}/#{file}", :via => :scp, :hosts => s)
       end
     end
   end
@@ -90,7 +87,7 @@ namespace :mysql do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         db_name = server.database.database_name
-        db_path = local_backup_path(server, db_name)
+        db_path = local_db_backup_path(server, db_name)
         print "Finalizando o download do banco #{db_name.yellow}: "
         start_spinner
         `cd #{db_path} && gzip -df "mysql-dump-#{db_name}-#{get_backup_date}.gz"`
@@ -127,6 +124,6 @@ after "mysql:backup", "mysql:finish_backup"
 after "mysql:backup", "mysql:remote_cleanup"
 after "mysql:prepare", "mysql:check"
 
-def local_backup_path(server, db_name)
+def local_db_backup_path(server, db_name)
   "#{server.configuration.local_backup_folder}/#{server.connection.host}/databases/#{db_name}"
 end
