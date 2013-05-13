@@ -1,0 +1,18 @@
+require "terminal-notifier"
+TerminalNotifier.notify('Iniciando deamon de backups :)')
+
+begin
+  `HOST="exemplo1.com" cap mysql:backup 2>&1`
+  `HOST="exemplo1.com" cap website:backup 2>&1`
+  TerminalNotifier.notify('exemplo1.com - Backup OK!')
+rescue
+  TerminalNotifier.notify('Erro no backup de exemplo1.com!')
+end
+
+begin
+  `HOST="exemplo2.com" cap mysql:backup 2>&1`
+  `HOST="exemplo2.com" cap website:backup 2>&1`
+  TerminalNotifier.notify('exemplo2.com - Backup OK!')
+rescue
+  TerminalNotifier.notify('Erro no backup de exemplo2.com!')
+end
