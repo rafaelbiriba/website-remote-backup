@@ -46,7 +46,8 @@ namespace :mysql do
         code = Digest::MD5.hexdigest db_name
         print "Gerando backup do banco #{db_name.yellow}: "
         start_spinner
-        run("cd ~/ && mysqldump --defaults-group-suffix=\"#{code}\" #{db_name} | gzip -v > mysql-dump-#{db_name}-#{get_backup_date}.gz", :hosts => s)
+        run("mkdir -p #{remote_backup_path(server)}", :hosts => s)
+        run("cd #{remote_backup_path(server)} && mysqldump --defaults-group-suffix=\"#{code}\" #{db_name} | gzip -v > mysql-dump-#{db_name}-#{get_backup_date}.gz", :hosts => s)
         stop_spinner
         puts "OK".green
       end
@@ -77,7 +78,7 @@ namespace :mysql do
         code = Digest::MD5.hexdigest db_name
         puts "Baixando backup do banco #{db_name.yellow}:"
         file = "mysql-dump-#{db_name}-#{get_backup_date}.gz"
-        download("#{file}", "#{local_db_backup_path(server, db_name)}/#{file}", :via => :scp, :hosts => s)
+        download("#{remote_backup_path(server)}/#{file}", "#{local_db_backup_path(server, db_name)}/#{file}", :via => :scp, :hosts => s)
       end
     end
   end
@@ -107,7 +108,7 @@ namespace :mysql do
         code = Digest::MD5.hexdigest db_name
         print "Limpando o servidor #{server.connection.host.yellow}: "
         start_spinner
-        run("rm -f ~/mysql-dump-#{db_name}-#{get_backup_date}.gz", :hosts => s)
+        run("rm -rf #{remote_backup_path(server)}", :hosts => s)
         stop_spinner
         puts "OK".green
       end
@@ -126,4 +127,8 @@ after "mysql:prepare", "mysql:check"
 
 def local_db_backup_path(server, db_name)
   "#{server.configuration.local_backup_folder}/#{server.connection.host}/databases/#{db_name}"
+end
+
+def remote_backup_path(server)
+  server.configuration.remote_temporary_backup_folder
 end
