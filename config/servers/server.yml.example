@@ -10,4 +10,5 @@ website: #Não colocar essa chave se não houver backup de codigo
   ignore: ["tmp", "cache", "config/senhas.php"] #Arquivos e Pastas a serem ignoradas pelo backup que ficam dentro do site_path
 configuration:
   local_backup_folder: /home/exemplo/backups #Pasta local para salvar os backups
+  remote_temporary_backup_folder: /home/exemplo/backup_tmp
       

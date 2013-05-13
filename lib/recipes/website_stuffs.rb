@@ -11,7 +11,8 @@ namespace :website do
             exclude << " --exclude=\"#{ignore}\""
           end 
         end
-        tar_cmd = "cd #{server.website.site_path} && tar cvpzf #{backup_file(server)}#{exclude} ."
+        run("mkdir -p #{remote_backup_path(server)}", :hosts => s)
+        tar_cmd = "cd #{server.website.site_path} && tar cvpzf #{backup_file_path(server)}#{exclude} ."
         run(tar_cmd, :hosts => s)
         stop_spinner
         puts "OK".green
@@ -39,7 +40,7 @@ namespace :website do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         puts "Baixando backup do #{server.connection.host.yellow}:"
-        download(backup_file(server), "#{local_backup_path(server)}/#{backup_file(server)}", :via => :scp, :hosts => s)
+        download(backup_file_path(server), "#{local_backup_path(server)}/#{backup_file(server)}", :via => :scp, :hosts => s)
       end
     end
   end
@@ -51,8 +52,8 @@ namespace :website do
         path = local_backup_path(server)
         print "Finalizando o backup do #{server.connection.host.yellow}: "
         start_spinner
-        `cd #{path} && tar -zxvf #{backup_file(server)}"`
-        `cd #{path} && rm -rf #{backup_file(server)}"`
+        `cd #{path} && tar -zxvf #{backup_file(server)} 2>&1`
+        `cd #{path} && rm -rf #{backup_file(server)}`
         `cd #{path} && git add . && git commit -am 'Backup - Data: #{get_backup_date}'`
         stop_spinner
         puts "OK".green
@@ -66,7 +67,7 @@ namespace :website do
       servers.each do |server|
         print "Limpando o servidor #{server.connection.host.yellow}: "
         start_spinner
-        run("cd #{server.website.site_path} && rm #{backup_file(server)}", :hosts => s)
+        run("rm -rf #{remote_backup_path(server)}", :hosts => s)
         stop_spinner
         puts "OK".green
       end
@@ -87,4 +88,12 @@ end
 
 def backup_file(server)
   "website-#{server.connection.host}-#{get_backup_date}.tar.gz"
+end
+
+def remote_backup_path(server)
+  server.configuration.remote_temporary_backup_folder
+end
+
+def backup_file_path(server)
+  "#{remote_backup_path(server)}/#{backup_file(server)}"
 end
