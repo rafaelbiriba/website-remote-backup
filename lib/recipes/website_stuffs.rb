@@ -9,7 +9,7 @@ namespace :website do
         unless server.website.ignore.nil?
           server.website.ignore.each do |ignore|
             exclude << " --exclude=\"#{ignore}\""
-          end 
+          end
         end
         run("mkdir -p #{remote_backup_path(server)}", :hosts => s)
         tar_cmd = "cd #{server.website.site_path} && tar cvpzf #{backup_file_path(server)}#{exclude} ."
@@ -19,7 +19,7 @@ namespace :website do
       end
     end
   end
-  
+
   task :prepare_to_backup, :roles => [:app] do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -34,7 +34,7 @@ namespace :website do
       end
     end
   end
-  
+
   task :backup, :roles => [:app] do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -44,7 +44,7 @@ namespace :website do
       end
     end
   end
-  
+
   task :finish_backup, :roles => [:app] do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -60,7 +60,17 @@ namespace :website do
       end
     end
   end
-  
+
+  task :local_cleanup, :roles => [:db] do
+    find_servers_for_task(current_task).each do |s|
+      servers = Server.select{ |server| server.connection.host == s.host.to_s }
+      servers.each do |server|
+        path = local_backup_path(server)
+        `cd #{path} && rm -f "website-#{server.connection.host}-*.gz"`
+      end
+    end
+  end
+
   task :remote_cleanup, :roles => [:app] do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -73,13 +83,43 @@ namespace :website do
       end
     end
   end
+
+  task :create_or_update_backup_date do
+    find_servers_for_task(current_task).each do |s|
+      servers = Server.select{ |server| server.connection.host == s.host.to_s }
+      servers.each do |server|
+        path = local_backup_path(server)
+        `cd #{path} && echo "#{get_backup_date}" > backup.date`
+      end
+    end
+  end
+
+  task :check_for_last_backup_date do
+    find_servers_for_task(current_task).each do |s|
+      servers = Server.select{ |server| server.connection.host == s.host.to_s }
+      servers.each do |server|
+        path = local_backup_path(server)
+        frequency = server.configuration.frequency
+        date = File.read("#{path}/backup.date") if File.exists? "#{path}/backup.date"
+        if !date.nil? && !date.empty?
+          date = DateTime.strptime(date, get_backup_date_format)
+          raise "Backup realizado a menos de #{frequency} dia" unless (DateTime.now-date).to_i >= 1
+        end
+      end
+    end
+  end
+
 end
 
+before "website:create_backup_file", "website:check_for_last_backup_date"
 before "website:backup", "website:create_backup_file"
+before "website:create_backup_file", "website:local_cleanup"
 before "website:backup", "website:prepare_to_backup"
+before "website:finish_backup", "website:create_or_update_backup_date"
 
 after "website:backup", "website:finish_backup"
 after "website:backup", "website:remote_cleanup"
+after "website:remote_cleanup", "website:local_cleanup"
 
 
 def local_backup_path(server)

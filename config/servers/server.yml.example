@@ -11,4 +11,4 @@ website: #Não colocar essa chave se não houver backup de codigo
 configuration:
   local_backup_folder: /home/exemplo/backups #Pasta local para salvar os backups
   remote_temporary_backup_folder: /home/exemplo/backup_tmp
-      
+  frequency: 1 #days
