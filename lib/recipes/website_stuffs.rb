@@ -66,7 +66,7 @@ namespace :website do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         path = local_backup_path(server)
-        `cd #{path} && rm -f "website-#{server.connection.host}-*.gz"`
+        `cd #{path} && rm -f "website-#{server.connection.host}-*.gz"` if File.exists?(path)
       end
     end
   end

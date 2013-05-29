@@ -106,7 +106,7 @@ namespace :mysql do
       servers.each do |server|
         db_path = local_db_backup_path(server)
         db_name = server.database.database_name
-        `cd #{db_path} && rm -f "mysql-dump-#{db_name}-*.gz"`
+        `cd #{db_path} && rm -f "mysql-dump-#{db_name}-*.gz"` if File.exists?(db_path)
       end
     end
   end
