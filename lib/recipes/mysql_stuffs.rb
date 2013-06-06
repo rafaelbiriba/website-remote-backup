@@ -106,7 +106,7 @@ namespace :mysql do
       servers.each do |server|
         db_path = local_db_backup_path(server)
         db_name = server.database.database_name
-        `cd #{db_path} && rm -f "mysql-dump-#{db_name}-*.gz"` if File.exists?(db_path)
+        `cd #{db_path} && rm -f mysql-dump-#{db_name}-*.gz` if File.exists?(db_path)
       end
     end
   end
@@ -144,7 +144,8 @@ namespace :mysql do
         date = File.read("#{db_path}/backup.date") if File.exists? "#{db_path}/backup.date"
         if !date.nil? && !date.empty?
           date = DateTime.strptime(date, get_backup_date_format)
-          raise "Backup realizado a menos de #{frequency} dia" unless (DateTime.now-date).to_i >= 1
+          error = CommandError.new("Backup realizado a menos de #{frequency} dia")
+          raise error unless (DateTime.now-date).to_i >= 1
         end
       end
     end

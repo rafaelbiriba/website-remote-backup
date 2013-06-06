@@ -66,7 +66,7 @@ namespace :website do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         path = local_backup_path(server)
-        `cd #{path} && rm -f "website-#{server.connection.host}-*.gz"` if File.exists?(path)
+        `cd #{path} && rm -f website-#{server.connection.host}-*.gz` if File.exists?(path)
       end
     end
   end
@@ -103,7 +103,8 @@ namespace :website do
         date = File.read("#{path}/backup.date") if File.exists? "#{path}/backup.date"
         if !date.nil? && !date.empty?
           date = DateTime.strptime(date, get_backup_date_format)
-          raise "Backup realizado a menos de #{frequency} dia" unless (DateTime.now-date).to_i >= 1
+          error = CommandError.new("Backup realizado a menos de #{frequency} dia")
+          raise error unless (DateTime.now-date).to_i >= 1
         end
       end
     end
