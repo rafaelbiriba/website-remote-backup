@@ -89,7 +89,9 @@ namespace :website do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         path = local_backup_path(server)
+        print "Limpando o repositório #{"GIT".yellow}..."
         local_git_cleaner(path)
+        puts "OK".green
       end
     end
   end
@@ -131,7 +133,7 @@ before "website:finish_backup", "website:create_or_update_backup_date"
 after "website:backup", "website:finish_backup"
 after "website:backup", "website:remote_cleanup"
 after "website:remote_cleanup", "website:local_cleanup"
-after "website:local_cleanup", "website:local_git_cleanup"
+after "website:finish_backup", "website:local_git_cleanup"
 
 
 def local_backup_path(server)

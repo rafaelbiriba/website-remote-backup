@@ -130,7 +130,9 @@ namespace :mysql do
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
       servers.each do |server|
         db_path = local_db_backup_path(server)
+        print "Limpando o repositório #{"GIT".yellow}..."
         local_git_cleaner(db_path)
+        puts "OK".green
       end
     end
   end
@@ -173,7 +175,7 @@ before "mysql:finish_backup", "mysql:create_or_update_backup_date"
 after "mysql:backup", "mysql:finish_backup"
 after "mysql:backup", "mysql:remote_cleanup"
 after "mysql:remote_cleanup", "mysql:local_cleanup"
-after "mysql:local_cleanup", "mysql:local_git_cleanup"
+after "mysql:finish_backup", "mysql:local_git_cleanup"
 after "mysql:prepare", "mysql:check"
 
 def local_db_backup_path(server)
