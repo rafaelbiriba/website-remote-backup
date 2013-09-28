@@ -125,6 +125,16 @@ namespace :mysql do
     end
   end
 
+  task :local_git_cleanup, :roles => [:db] do
+    find_servers_for_task(current_task).each do |s|
+      servers = Server.select{ |server| server.connection.host == s.host.to_s }
+      servers.each do |server|
+        db_path = local_db_backup_path(server)
+        local_git_cleaner(db_path)
+      end
+    end
+  end
+
   task :create_or_update_backup_date do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -163,6 +173,7 @@ before "mysql:finish_backup", "mysql:create_or_update_backup_date"
 after "mysql:backup", "mysql:finish_backup"
 after "mysql:backup", "mysql:remote_cleanup"
 after "mysql:remote_cleanup", "mysql:local_cleanup"
+after "mysql:local_cleanup", "mysql:local_git_cleanup"
 after "mysql:prepare", "mysql:check"
 
 def local_db_backup_path(server)

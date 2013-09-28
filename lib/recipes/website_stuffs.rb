@@ -84,6 +84,16 @@ namespace :website do
     end
   end
 
+  task :local_git_cleanup, :roles => [:app] do
+    find_servers_for_task(current_task).each do |s|
+      servers = Server.select{ |server| server.connection.host == s.host.to_s }
+      servers.each do |server|
+        path = local_backup_path(server)
+        local_git_cleaner(path)
+      end
+    end
+  end
+
   task :create_or_update_backup_date do
     find_servers_for_task(current_task).each do |s|
       servers = Server.select{ |server| server.connection.host == s.host.to_s }
@@ -121,6 +131,7 @@ before "website:finish_backup", "website:create_or_update_backup_date"
 after "website:backup", "website:finish_backup"
 after "website:backup", "website:remote_cleanup"
 after "website:remote_cleanup", "website:local_cleanup"
+after "website:local_cleanup", "website:local_git_cleanup"
 
 
 def local_backup_path(server)

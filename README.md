@@ -17,9 +17,3 @@ Customize your backup script (see the example in script/backup.rb.example)
 Run the script (ruby script/backup.rb)
 
 Get your site backup and stored in a local git repository :)
-
-#### TO DO:
- - Remove oldest commits based in a config parameter
-
-##### Helpful read for todo list:
-http://stackoverflow.com/questions/9765391/remove-oldest-commits-from-git-repository
